@@ -45,5 +45,6 @@ func (r *Recorder) Stop() error {
 		return err
 	}
 
-	return r.command.Process.Release()
+	_ = r.command.Wait()
+	return nil
 }
