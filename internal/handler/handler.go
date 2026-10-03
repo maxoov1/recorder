@@ -20,8 +20,8 @@ func New(manager *manager.RecorderManager) *Handler {
 func (h *Handler) RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /{name}", h.runInstanceHandler)
-	mux.HandleFunc("DELETE /{name}", h.stopInstanceHandler)
+	mux.HandleFunc("POST /{identifier}", h.runInstanceHandler)
+	mux.HandleFunc("DELETE /{identifier}", h.stopInstanceHandler)
 
 	return mux
 }
@@ -39,7 +39,7 @@ func (r Request) Validate() error {
 }
 
 func (h *Handler) runInstanceHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.PathValue("name")
+	identifier := r.PathValue("identifier")
 
 	var request Request
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -52,16 +52,16 @@ func (h *Handler) runInstanceHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.manager.Run(context.Background(), name, request.Endpoint); err != nil {
+	if err := h.manager.Run(context.Background(), identifier, request.Endpoint); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *Handler) stopInstanceHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.PathValue("name")
+	identifier := r.PathValue("identifier")
 
-	if err := h.manager.Stop(context.Background(), name); err != nil {
+	if err := h.manager.Stop(identifier); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

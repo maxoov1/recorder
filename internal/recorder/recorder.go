@@ -37,11 +37,7 @@ func (r *Recorder) Run(ctx context.Context) error {
 		r.output,
 	)
 
-	if err := r.command.Start(); err != nil {
-		return err
-	}
-
-	return nil
+	return r.command.Start()
 }
 
 func (r *Recorder) Stop() error {

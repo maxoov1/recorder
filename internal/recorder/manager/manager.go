@@ -59,7 +59,7 @@ func (m *RecorderManager) Run(ctx context.Context, identifier, endpoint string) 
 	return nil
 }
 
-func (m *RecorderManager) Stop(ctx context.Context, identifier string) error {
+func (m *RecorderManager) Stop(identifier string) error {
 	m.instancesMutex.Lock()
 	defer m.instancesMutex.Unlock()
 
