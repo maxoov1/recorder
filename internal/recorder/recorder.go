@@ -45,5 +45,9 @@ func (r *Recorder) Run(ctx context.Context) error {
 }
 
 func (r *Recorder) Stop() error {
-	return r.command.Cancel()
+	if err := r.command.Cancel(); err != nil {
+		return err
+	}
+
+	return r.command.Process.Release()
 }
