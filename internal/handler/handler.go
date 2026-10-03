@@ -1,0 +1,68 @@
+package handler
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+
+	"github.com/maxoov1/recorder/internal/recorder/manager"
+)
+
+type Handler struct {
+	manager *manager.RecorderManager
+}
+
+func New(manager *manager.RecorderManager) *Handler {
+	return &Handler{manager: manager}
+}
+
+func (h *Handler) RegisterRoutes() http.Handler {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("POST /{name}", h.runInstanceHandler)
+	mux.HandleFunc("DELETE /{name}", h.stopInstanceHandler)
+
+	return mux
+}
+
+type Request struct {
+	Endpoint string `json:"endpoint"`
+}
+
+func (r Request) Validate() error {
+	if r.Endpoint == "" {
+		return fmt.Errorf("endpoint is empty")
+	}
+
+	return nil
+}
+
+func (h *Handler) runInstanceHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
+
+	var request Request
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := request.Validate(); err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	if err := h.manager.Run(context.Background(), name, request.Endpoint); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) stopInstanceHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
+
+	if err := h.manager.Stop(context.Background(), name); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
