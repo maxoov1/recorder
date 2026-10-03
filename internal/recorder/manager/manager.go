@@ -14,6 +14,9 @@ import (
 
 var (
 	_defaultPlaylist = "rolling_stream.m3u8"
+
+	ErrExist    = errors.New("instance already exist")
+	ErrNotExist = errors.New("instance doesn't exist")
 )
 
 type RecorderManager struct {
@@ -34,12 +37,16 @@ func (m *RecorderManager) Run(ctx context.Context, identifier, endpoint string) 
 	defer m.instancesMutex.Unlock()
 
 	if _, exist := m.instances[identifier]; exist {
-		return fmt.Errorf("instance %q already exist", identifier)
+		return ErrExist
 	}
 
 	baseIdentifier := filepath.Join(m.base, identifier)
 
-	if _, err := os.Stat(baseIdentifier); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(baseIdentifier); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+
 		log.Printf("folder %q doesn't exist - creating...", baseIdentifier)
 
 		if err := os.MkdirAll(baseIdentifier, 0o777); err != nil {
@@ -65,7 +72,7 @@ func (m *RecorderManager) Stop(identifier string) error {
 
 	instance, exist := m.instances[identifier]
 	if !exist {
-		return fmt.Errorf("instance %q doesn't exist", identifier)
+		return ErrNotExist
 	}
 
 	if err := instance.Stop(); err != nil {
