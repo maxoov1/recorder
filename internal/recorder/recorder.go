@@ -9,17 +9,29 @@ import (
 type Recorder struct {
 	command *exec.Cmd
 
-	identifier, endpoint, output string
+	identifier string
+	endpoint   string
+
+	rollingStreamOutput string
+	thumbnailOutput     string
 }
 
-func New(identifier, endpoint, output string) *Recorder {
-	return &Recorder{identifier: identifier, endpoint: endpoint, output: output}
+func New(identifier, endpoint, rollingStreamOutput, thumbnailOutput string) *Recorder {
+	return &Recorder{
+		identifier: identifier,
+		endpoint:   endpoint,
+
+		rollingStreamOutput: rollingStreamOutput,
+		thumbnailOutput:     thumbnailOutput,
+	}
 }
 
 func (r *Recorder) Run(ctx context.Context) error {
 	r.command = exec.CommandContext(
 		ctx,
 		"ffmpeg",
+
+		"-y",
 
 		"-use_wallclock_as_timestamps", "1",
 
@@ -34,9 +46,12 @@ func (r *Recorder) Run(ctx context.Context) error {
 
 		"-f", "hls", "-hls_time", "6", "-hls_list_size", "6000", "-hls_flags", "append_list+delete_segments", "-hls_segment_type", "fmp4",
 
-		r.output,
-	)
+		r.rollingStreamOutput,
 
+		"-vf", "fps=1", "-update", "1",
+
+		r.thumbnailOutput,
+	)
 	return r.command.Start()
 }
 

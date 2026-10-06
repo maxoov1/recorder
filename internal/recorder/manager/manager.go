@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	_defaultPlaylist = "rolling_stream.m3u8"
+	_defaultRollingStream = "rolling_stream.m3u8"
+	_defaultThumbnail     = "thumbnail.jpg"
 
 	ErrExist    = errors.New("instance already exist")
 	ErrNotExist = errors.New("instance doesn't exist")
@@ -55,7 +56,11 @@ func (m *RecorderManager) Run(ctx context.Context, identifier, endpoint string) 
 	}
 
 	instance := recorder.New(
-		identifier, endpoint, filepath.Join(baseIdentifier, _defaultPlaylist))
+		identifier,
+		endpoint,
+		filepath.Join(baseIdentifier, _defaultRollingStream),
+		filepath.Join(baseIdentifier, _defaultThumbnail),
+	)
 
 	if err := instance.Run(ctx); err != nil {
 		return fmt.Errorf("failed to run instance: %w", err)
