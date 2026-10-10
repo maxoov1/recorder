@@ -4,23 +4,29 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/maxoov1/recorder/internal/handler"
 	"github.com/maxoov1/recorder/internal/recorder/manager"
 )
 
-var (
-	_defaultAddress = "127.0.0.1:9000"
-	_defaultBase    = "recording"
-)
+func env(key, value string) string {
+	if e, ok := os.LookupEnv(key); ok {
+		return e
+	}
+	return value
+}
 
 func main() {
-	manager := manager.New(_defaultBase)
-	handler := handler.New(_defaultBase, manager)
+	address := env("RECORDER_ADDRESS", "127.0.0.1:9000")
+	base := env("RECORDER_BASE", "recording")
 
-	server := &http.Server{Addr: _defaultAddress, Handler: handler.RegisterRoutes()}
+	manager := manager.New(base)
+	handler := handler.New(base, manager)
 
-	log.Printf("starting server at %s", _defaultAddress)
+	server := &http.Server{Addr: address, Handler: handler.RegisterRoutes()}
+
+	log.Printf("starting server at %s", address)
 
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("serve: %v", err)
