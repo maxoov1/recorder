@@ -16,7 +16,7 @@ var (
 
 func main() {
 	manager := manager.New(_defaultBase)
-	handler := handler.New(manager)
+	handler := handler.New(_defaultBase, manager)
 
 	server := &http.Server{Addr: _defaultAddress, Handler: handler.RegisterRoutes()}
 

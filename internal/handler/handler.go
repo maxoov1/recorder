@@ -12,15 +12,20 @@ import (
 )
 
 type Handler struct {
+	base    string
 	manager *manager.RecorderManager
 }
 
-func New(manager *manager.RecorderManager) *Handler {
-	return &Handler{manager: manager}
+func New(base string, manager *manager.RecorderManager) *Handler {
+	return &Handler{base: base, manager: manager}
 }
 
 func (h *Handler) RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
+
+	mux.Handle("GET /records/", http.StripPrefix(
+		"/records/", http.FileServer(http.Dir(h.base))),
+	)
 
 	mux.HandleFunc("POST /{identifier}", h.runInstanceHandler)
 	mux.HandleFunc("DELETE /{identifier}", h.stopInstanceHandler)
