@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 )
 
 type Recorder struct {
@@ -37,7 +38,7 @@ func (r *Recorder) Run(ctx context.Context) error {
 		"-filter_complex", fmt.Sprintf(`
 			[0:v] drawtext=text='%%{localtime} %s':fontsize=32:fontcolor=white:x=32:y=32, split=2 [s][t];
 			  [s] fps=5 [fs]; [t] fps=1, scale=640:-2 [ft]
-			`, r.identifier),
+			`, strings.ToUpper(r.identifier)),
 		"-map", "[fs]", r.rollingStreamOutput,
 		"-map", "[ft]", "-update", "1", "-q:v", "31", r.thumbnailOutput,
 	)
